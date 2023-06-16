@@ -1,45 +1,43 @@
 <template>
   <div>
-    <input type="file" @change="handleFileUpload">
-    <button @click="uploadFile">Upload</button>
+    <input type="file" @change="handleFileUpload" />
     <ul>
-      <li v-for="file in fileList" :key="file.id" @click="viewFile(file.id)">{{ file.name }}</li>
+      <li v-for="(file, index) in fileList" :key="index" @click="displayPDF(file)">
+        {{ file.name }}
+      </li>
     </ul>
-    <div v-if="selectedFile">
-      <pdf-viewer :file="selectedFile" />
-    </div>
   </div>
 </template>
 
 <script>
-import { uploadFileToSharePoint, getFileFromSharePoint } from '@/service/sharepointService.js';
-import PdfViewer from './PdfViewer.vue';
-
+//import { PdfViewer } from 'vue-pdf';
 export default {
   components: {
-    PdfViewer,
+   // PdfViewer
   },
   data() {
     return {
-      fileList: [],
-      selectedFile: null,
+      fileList: []
     };
   },
   methods: {
-    async handleFileUpload(event) {
-      this.selectedFile = null;
-      const file = event.target.files[0];
-      this.fileList.push(file);
+    handleFileUpload(event) {
+      const files = event.target.files;
+      for (let i = 0; i < files.length; i++) {
+        this.fileList.push(files[i]);
+      }
     },
-    async uploadFile() {
-      const file = this.fileList[this.fileList.length - 1];
-      await uploadFileToSharePoint(file);
-      this.fileList.pop();
-    },
-    async viewFile(fileId) {
-      const file = await getFileFromSharePoint(fileId);
-      this.selectedFile = file;
-    },
-  },
+    displayPDF(file) {
+      const fileReader = new FileReader();
+
+      fileReader.onload = () => {
+        const pdfData = fileReader.result;
+        // Set the PDF data to a reactive property
+        this.pdfData = pdfData;
+      };
+
+      fileReader.readAsArrayBuffer(file);
+    }
+  }
 };
 </script>
